@@ -21,7 +21,7 @@ export const contentPostValidation = body('content')
 export const blogIdPostValidation = body('blogId')
 .exists().withMessage('BlogId is required')
 .isString().withMessage('BlogId must be a string')
-.isLength({min: 1, max: 100}).withMessage('BlogId cannot be longer than 1000 characters')
+.isLength({min: 1, max: 100}).withMessage('BlogId cannot be longer than 100 characters')
 .trim().notEmpty().withMessage('BlogId can not be empty')
 
 export const postInputValidationMiddleware = [

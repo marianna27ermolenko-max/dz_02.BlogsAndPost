@@ -7,6 +7,10 @@ export const deletePostHandler =
 
 const id = req.params.id.toString();   
 
-const delPost = postsRepository.deleteBlog(id)
+const delPost = postsRepository.deletePost(id);
+
+if(!delPost){
+    return res.sendStatus(HttpStatus.NOT_FOUND);
+}
 res.sendStatus(HttpStatus.NO_CONTENT);   
 }  

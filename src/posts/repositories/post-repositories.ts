@@ -33,7 +33,7 @@ updatePost(id: string, dto: PostInputModel): boolean {
     return true;
 },
 
-deleteBlog(id: string): boolean {
+deletePost(id: string): boolean {
 
     const index = db.posts.findIndex((v) => v.id === id);
 

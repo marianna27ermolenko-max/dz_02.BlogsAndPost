@@ -1,0 +1,314 @@
+openapi: 3.0.0
+info:
+  title: Blogs API
+  version: 1.0.0
+  description: Blogs API documentation
+
+tags:
+  - name: Testing
+    description: API for clearing the database
+  - name: Blogs
+    description: API for managing blogs
+  - name: Posts
+    description: API for managing posts
+
+paths:
+  /ht_02/api/blogs:
+    get:
+      tags:
+        - Blogs
+      summary: Returns all blogs
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BlogViewModel'
+    post:
+      tags:
+        - Blogs
+      summary: Create new blog
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BlogInputModel'
+      responses:
+        '201':
+          description: Blog created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlogViewModel'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResult'
+
+  /ht_02/api/blogs/{id}:
+    get:
+      tags:
+        - Blogs
+      summary: Returns a blog by id
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Blog found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlogViewModel'
+        '404':
+          description: Blog not found
+    put:
+      tags:
+        - Blogs
+      summary: Update blog by id
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BlogInputModel'
+      responses:
+        '204':
+          description: Blog updated
+        '400':
+          description: Invalid input
+        '404':
+          description: Blog not found
+    delete:
+      tags:
+        - Blogs
+      summary: Delete blog by id
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Blog deleted
+        '404':
+          description: Blog not found
+
+  /ht_02/api/posts:
+    get:
+      tags:
+        - Posts
+      summary: Returns all posts
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PostViewModel'
+    post:
+      tags:
+        - Posts
+      summary: Create new post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostInputModel'
+      responses:
+        '201':
+          description: Post created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostViewModel'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResult'
+
+  /ht_02/api/posts/{id}:
+    get:
+      tags:
+        - Posts
+      summary: Get post by id
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Post found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostViewModel'
+        '404':
+          description: Post not found
+    put:
+      tags:
+        - Posts
+      summary: Update post by id
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PostInputModel'
+      responses:
+        '204':
+          description: Post updated
+        '400':
+          description: Invalid input
+        '404':
+          description: Post not found
+    delete:
+      tags:
+        - Posts
+      summary: Delete post by id
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Post deleted
+        '404':
+          description: Post not found
+
+  /ht_02/api/testing/all-data:
+    delete:
+      tags:
+        - Testing
+      summary: Clear all data (blogs, posts)
+      responses:
+        '204':
+          description: All data deleted
+
+components:
+  schemas:
+    BlogInputModel:
+      type: object
+      required:
+        - name
+        - description
+        - websiteUrl
+      properties:
+        name:
+          type: string
+          maxLength: 15
+        description:
+          type: string
+          maxLength: 500
+        websiteUrl:
+          type: string
+          maxLength: 100
+          pattern: ^https://([a-zA-Z0-9_-]+\.)+[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_-]+)*\/?$
+
+    BlogViewModel:
+      type: object
+      required:
+        - id
+        - name
+        - description
+        - websiteUrl
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        websiteUrl:
+          type: string
+
+    PostInputModel:
+      type: object
+      required:
+        - title
+        - shortDescription
+        - content
+        - blogId
+      properties:
+        title:
+          type: string
+          maxLength: 30
+        shortDescription:
+          type: string
+          maxLength: 100
+        content:
+          type: string
+          maxLength: 1000
+        blogId:
+          type: string
+
+    PostViewModel:
+      type: object
+      required:
+        - id
+        - title
+        - shortDescription
+        - content
+        - blogId
+        - blogName
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        shortDescription:
+          type: string
+        content:
+          type: string
+        blogId:
+          type: string
+        blogName:
+          type: string
+
+    APIErrorResult:
+      type: object
+      properties:
+        errorsMessages:
+          type: array
+          items:
+            $ref: '#/components/schemas/FieldError'
+
+    FieldError:
+      type: object
+      properties:
+        message:
+          type: string
+        field:
+          type: string
+          

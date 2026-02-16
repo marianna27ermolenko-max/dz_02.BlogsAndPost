@@ -4,7 +4,7 @@ import { HttpStatus } from "../types/http.status";
 
 //используется в роутере после всех body() проверок
 const formatErrors = (error: any) => ({
-  field: error.param, // Поле с ошибкой
+  field: error.path, // Поле с ошибкой
   message: error.msg, // Сообщение ошибки
 });
 

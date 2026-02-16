@@ -1,0 +1,19 @@
+{
+
+   "version": 2,
+
+   "name": "dz_02_videos",
+
+   "builds": [
+
+      { "src": "src/index.js", "use": "@vercel/node" }
+
+   ],
+
+   "routes": [
+
+      { "src": "/(.*)", "dest": "src/index.js" }
+
+   ]
+
+}

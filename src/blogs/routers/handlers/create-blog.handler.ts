@@ -2,18 +2,32 @@ import { Response, Request } from "express";
 import { blogsRepository } from "../../repositories/blogs-repositories";
 import { HttpStatus } from "../../../core/types/http.status";
 import { Blog } from "../../types/blog.type";
-import { db } from "../../../db/in.memory.db";
-import { mapToBlogOutput } from "../mappers/map-blog.output";
+import { mapToBlogViewModel } from "../mappers/map-blog-view-model";
+import { APIErrorResult } from "../../../core/utils/APIErrorResult";
+import { BlogInputModel } from "../../dto/blog.dto.model";
 
-export const createBlogHandler = (req: Request, res: Response) => {
+export async function createBlogHandler(req: Request<{}, {}, BlogInputModel>, res: Response){
 
-  const newBlog: Blog = blogsRepository.createBlog({
-    id:(db.blogs.length ? db.blogs[db.blogs.length - 1].id + 1 : 1 ).toString(),
+  try{
+    const newBlog: Blog = {   
     name: req.body.name,
     description: req.body.description,
     websiteUrl: req.body.websiteUrl,
-  });
+    createdAt: new Date().toString(),
+    isMembership: true,
+  }
+  
+  const createBlog = await blogsRepository.createBlog(newBlog);
+  const BlogViewModel = mapToBlogViewModel(createBlog);
+  res.status(HttpStatus.CREATED).json(BlogViewModel);
 
-  const viewBlog = mapToBlogOutput(newBlog);
-  res.status(HttpStatus.CREATED).json(viewBlog);
+} catch (err: any){
+const errors = [
+  {
+     message: err.message ?? "Unknown error",
+     field: "blog",
+  }
+]
+res.status(HttpStatus.BAD_REQUEST).json(APIErrorResult(errors)) 
 };
+}  

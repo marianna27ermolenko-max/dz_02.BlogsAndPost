@@ -1,47 +1,50 @@
-import { db } from "../../db/in.memory.db";
-import { Blog, BlogViewModel } from "../types/blog.type";
+import { Blog } from "../types/blog.type";
 import { BlogInputModel } from "../dto/blog.dto.model";
+import { blogCollection } from "../../db/mongo.db";
+import { WithId, ObjectId } from "mongodb";
 
 export const blogsRepository = {
 
-findAllBlogs(): BlogViewModel[]{
-return db.blogs;
+async findAllBlogs(): Promise<WithId<Blog>[]> {
+return blogCollection.find().toArray();
 },
 
-findBlogById(id: string): BlogViewModel | null{
-return db.blogs.find(n => n.id === id) ?? null;
+async findBlogById(id: string): Promise<WithId<Blog> | null>{
+return blogCollection.findOne({_id: new ObjectId(id)})
 },
 
-createBlog(newBlog: Blog): BlogViewModel{
-    
-db.blogs.push(newBlog);
-return newBlog;
+async createBlog(newBlog: Blog): Promise<WithId<Blog>> {
+    const insertResult = await blogCollection.insertOne(newBlog);
+    return {...newBlog, _id: insertResult.insertedId};
 },
 
-updateBlog(id: string, dto: BlogInputModel):boolean {
+async updateBlog(id: string, dto: BlogInputModel): Promise<void>{
 
-    const blog = db.blogs.find(n => n.id === id);
-    if(!blog){
-    return false
-    };
+    const updateResult = await blogCollection.updateOne(
+     {_id: new ObjectId(id)},
+     { $set: {
+    name: dto.name, 
+    description: dto.description, 
+    websiteUrl: dto.websiteUrl,
+     }}
+    )
+   
+    if(updateResult.matchedCount < 0){
 
-    blog.name = dto.name; 
-    blog.description = dto.description; 
-    blog.websiteUrl = dto.websiteUrl;
+    throw new Error('Blog not exist')
+    }
 
-    return true;
+    return;
 },
 
-deleteBlog(id: string): boolean{
+async deleteBlog(id: string): Promise<void>{ 
 
-    const index = db.blogs.findIndex((v) => v.id === id);
+const deleteResult = await blogCollection.deleteOne({_id: new ObjectId(id)});
 
-    if(index === -1){
-    return false;  
-    };
-
-    db.blogs.splice(index, 1);
-    return true;
+if(deleteResult.deletedCount === 0){
+    throw new Error('Blog not exist')
+}
+    return;
 },
 };
 

@@ -1,47 +1,45 @@
-import { db } from "../../db/in.memory.db";
-import { PostViewModel } from "../types/post.type";
+import { postCollection } from "../../db/mongo.db";
+import { Post} from "../types/post.type";
 import { PostInputModel } from "../dto/post.dto.view.input";
+import { WithId, ObjectId } from "mongodb";
 
 
 export const postsRepository = {
 
-findAllPosts(): PostViewModel[]{
-return db.posts;
+async findAllPosts(): Promise<WithId<Post>[]> {
+return postCollection.find().toArray();
 },
 
-findPostById(id: string): PostViewModel | null{
-return db.posts.find(n => n.id === id) ?? null;
+async findPostById(id: string): Promise<WithId<Post> | null> {
+return postCollection.findOne({_id: new ObjectId(id)});
 },
 
-createPost(newBlog: PostViewModel): PostViewModel{
-db.posts.push(newBlog);
-return newBlog;
+async createPost(newPost: Post): Promise<WithId<Post>> {
+const insertResult = await postCollection.insertOne(newPost);
+return {...newPost, _id: insertResult.insertedId}
 },
 
-updatePost(id: string, dto: PostInputModel): boolean {
+async updatePost(id: string, dto: PostInputModel): Promise<void> {
 
-    const blog = db.posts.find(n => n.id === id);
-    if(!blog){
-    return false;
+    const updateResult = await postCollection.updateMany({_id: new ObjectId(id)},
+    {$set: {    
+    title: dto.title, 
+    shortDescription: dto.shortDescription, 
+    content: dto.content,
+    blogId: dto.blogId,
+}})
+    if(updateResult.matchedCount < 1 ){
+        throw new Error('Post not exist')
     };
-
-    blog.title= dto.title; 
-    blog.shortDescription = dto.shortDescription; 
-    blog.content = dto.content;
-    blog.blogId = dto.blogId;
-
-    return true;
+    return;
 },
 
-deletePost(id: string): boolean {
+async deletePost(id: string): Promise<void> {
 
-    const index = db.posts.findIndex((v) => v.id === id);
-
-    if(index === -1){
-    return false 
-    };
-
-    db.posts.splice(index, 1);
-    return true;
+const deleteResult = await postCollection.deleteOne({_id: new ObjectId(id)});
+if(deleteResult.deletedCount < 1){
+throw new Error('Post not exist')
+};
+return;
 },
 };

@@ -252,6 +252,12 @@ components:
           type: string
         websiteUrl:
           type: string
+        createdAt:
+          type: string
+          format: date-time
+        isMembership:
+          type: boolean
+          example: false
 
     PostInputModel:
       type: object
@@ -295,6 +301,9 @@ components:
           type: string
         blogName:
           type: string
+        createdAt:
+          type: string
+          format: date-time
 
     APIErrorResult:
       type: object
@@ -311,4 +320,3 @@ components:
           type: string
         field:
           type: string
-          

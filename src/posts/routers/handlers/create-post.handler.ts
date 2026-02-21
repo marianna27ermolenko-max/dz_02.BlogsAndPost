@@ -1,25 +1,39 @@
-import { Response, Request } from "express"; 
+import { Response, Request } from "express";
 import { postsRepository } from "../../repositories/post-repositories";
-import { db } from "../../../db/in.memory.db";
 import { HttpStatus } from "../../../core/types/http.status";
 import { blogsRepository } from "../../../blogs/repositories/blogs-repositories";
+import { mapToPostViewMolel } from "../mappers/map-to-post-model";
+import { APIErrorResult } from "../../../core/utils/APIErrorResult";
 
-export const createPostHandler = 
-(req: Request, res: Response) => {
+export async function createPostHandler(req: Request, res: Response) {
+  try {
+    const blogId = req.body.blogId;
+    const blog = await blogsRepository.findBlogById(blogId);
 
-const blog =  blogsRepository.findBlogById(req.body.blogId);
+    if (!blog) {
+      return res.status(HttpStatus.BAD_REQUEST).json(
+        APIErrorResult([
+          {
+            message: "Blog not found",
+            field: "id",
+          },
+        ]),
+      );
+    }
 
-if(!blog){
-return res.sendStatus(HttpStatus.BAD_REQUEST);
+    const newPost = {
+      title: req.body.title,
+      shortDescription: req.body.shortDescription,
+      content: req.body.content,
+      blogId: req.body.blogId,
+      blogName: blogId.name,
+      createdAt: new Date().toString()
+    };
+
+    const createPost = await postsRepository.createPost(newPost)
+    const PostViewModel = mapToPostViewMolel(createPost)
+    res.status(HttpStatus.OK).json(PostViewModel)
+  } catch (err: unknown){
+    res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+  }
 }
-
-const newPost = postsRepository.createPost({ 
-   id: (db.posts.length ? db.posts[db.posts.length - 1].id + 1 : 1 ).toString(),
-   title: req.body.title,
-   shortDescription: req.body.shortDescription,
-   content: req.body.content,
-   blogId: req.body.blogId,
-   blogName: blog.name,});
-
-res.status(HttpStatus.CREATED).json(newPost)   
-}  

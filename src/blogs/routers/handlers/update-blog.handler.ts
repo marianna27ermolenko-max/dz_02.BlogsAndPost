@@ -1,21 +1,31 @@
 import { Response, Request } from "express";
-import { blogsRepository  } from "../../repositories/blogs-repositories";
+import { blogsRepository } from "../../repositories/blogs-repositories";
 import { HttpStatus } from "../../../core/types/http.status";
 import { BlogInputModel } from "../../dto/blog.dto.model";
+import { APIErrorResult } from "../../../core/utils/APIErrorResult";
 
+export async function updateBlogHandler(
+  req: Request<{ id: string }, {}, BlogInputModel>,
+  res: Response,
+) {
+  try {
+    const id = req.params.id;
 
-export const updateBlogHandler =  (req: Request, res: Response) => {
-      const id = req.params.id.toString();
-      const dto: BlogInputModel = {
-        name: req.body.name,
-        description: req.body.description,
-        websiteUrl: req.body.websiteUrl,
-      };
+    const blogReal = await blogsRepository.findBlogById(id);
 
-      const updBlog = blogsRepository.updateBlog(id, dto);
-
-      if (!updBlog) {
-        res.sendStatus(HttpStatus.NOT_FOUND);
-      }
-      res.sendStatus(HttpStatus.NO_CONTENT);
+    if (!blogReal) {
+      return res.sendStatus(HttpStatus.NOT_FOUND);
     }
+
+    const dto: BlogInputModel = {
+      name: req.body.name,
+      description: req.body.description,
+      websiteUrl: req.body.websiteUrl,
+    };
+
+ await blogsRepository.updateBlog(id, dto);
+    res.sendStatus(HttpStatus.NO_CONTENT);
+  } catch (err: unknown){
+    res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+}

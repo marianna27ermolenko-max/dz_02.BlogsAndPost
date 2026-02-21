@@ -1,3 +1,6 @@
+import dotenv from 'dotenv'
+dotenv.config()
+
 import express from "express";
 import { setupApp } from "./setup-app";
 import { SETTINGS } from "./core/settings/setting";
@@ -9,6 +12,8 @@ const bootstrap = async () => {
   const PORT = SETTINGS.PORT;
 
   await runDB(SETTINGS.MONGO_URL);
+
+  console.log("Mongo connected");
 
   app.listen(PORT, () => {
     console.log(`Example app listening on port ${PORT}`);

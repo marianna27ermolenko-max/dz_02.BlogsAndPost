@@ -1,14 +1,14 @@
 import { Response, Request } from "express";
-import { postsRepository } from "../../repositories/post-repositories";
 import { HttpStatus } from "../../../core/types/http.status";
-import { blogsRepository } from "../../../blogs/repositories/blogs-repositories";
 import { mapToPostViewMolel } from "../mappers/map-to-post-model";
 import { APIErrorResult } from "../../../core/utils/APIErrorResult";
+import { blogsService } from "../../../blogs/application/blogs.service";
+import { postsService } from "../../application/posts.service";
 
 export async function createPostHandler(req: Request, res: Response) {
   try {
     const blogId = req.body.blogId;
-    const blog = await blogsRepository.findBlogById(blogId);
+    const blog = await blogsService.findByIdOrFail(blogId);
 
     if (!blog) {
       return res.status(HttpStatus.BAD_REQUEST).json(
@@ -26,13 +26,13 @@ export async function createPostHandler(req: Request, res: Response) {
       shortDescription: req.body.shortDescription,
       content: req.body.content,
       blogId: req.body.blogId,
-      blogName: blogId.name,
-      createdAt: new Date().toString()
+      blogName: blog.name,
+      createdAt: new Date().toISOString()
     };
 
-    const createPost = await postsRepository.createPost(newPost)
+    const createPost = await postsService.createPost(newPost)
     const PostViewModel = mapToPostViewMolel(createPost)
-    res.status(HttpStatus.OK).json(PostViewModel)
+    res.status(HttpStatus.CREATED).json(PostViewModel)
   } catch (err: unknown){
     res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR)
   }

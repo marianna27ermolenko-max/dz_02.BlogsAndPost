@@ -1,6 +1,6 @@
 import { Response, Request } from "express";
-import { postsRepository } from "../../repositories/post-repositories";
 import { HttpStatus } from "../../../core/types/http.status";
+import { postsService } from "../../application/posts.service";
 
 export async function deletePostHandler(
   req: Request<{ id: string }>,
@@ -8,11 +8,11 @@ export async function deletePostHandler(
 ){
   try {
     const id = req.params.id;
-    const post = await postsRepository.findPostById(id);
+    const post = await postsService.findPostById(id);
     if (!post){
       return res.sendStatus(HttpStatus.NOT_FOUND);
     }
-    await postsRepository.deletePost(id);
+    await postsService.deletePost(id);
     res.sendStatus(HttpStatus.NO_CONTENT);
   } catch (err: unknown) {
     res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);

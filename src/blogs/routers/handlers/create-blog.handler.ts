@@ -1,10 +1,10 @@
 import { Response, Request } from "express";
-import { blogsRepository } from "../../repositories/blogs-repositories";
 import { HttpStatus } from "../../../core/types/http.status";
 import { Blog } from "../../types/blog.type";
 import { mapToBlogViewModel } from "../mappers/map-blog-view-model";
 import { APIErrorResult } from "../../../core/utils/APIErrorResult";
 import { BlogInputModel } from "../../dto/blog.dto.model";
+import { blogsService } from "../../application/blogs.service";
 
 export async function createBlogHandler(req: Request<{}, {}, BlogInputModel>, res: Response){
 
@@ -13,11 +13,11 @@ export async function createBlogHandler(req: Request<{}, {}, BlogInputModel>, re
     name: req.body.name,
     description: req.body.description,
     websiteUrl: req.body.websiteUrl,
-    createdAt: new Date().toString(),
-    isMembership: true,
+    createdAt: new Date().toISOString(),
+    isMembership: false,
   }
   
-  const createBlog = await blogsRepository.createBlog(newBlog);
+  const createBlog = await blogsService.createBlog(newBlog);
   const BlogViewModel = mapToBlogViewModel(createBlog);
   res.status(HttpStatus.CREATED).json(BlogViewModel);
 

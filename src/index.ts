@@ -11,13 +11,19 @@ const bootstrap = async () => {
   setupApp(app);
   const PORT = SETTINGS.PORT;
 
-  await runDB(SETTINGS.MONGO_URL);
-
-  console.log("Mongo connected");
+  
+  try {
+    await runDB(SETTINGS.MONGO_URL);
+    console.log("✅ MongoDB connected");
+  } catch (err) {
+    console.error("❌ Failed to connect to MongoDB", err);
+    process.exit(1); // останавливаем приложение, если нет подключения к БД
+  }
 
   app.listen(PORT, () => {
-    console.log(`Example app listening on port ${PORT}`);
+    console.log(`🚀 App listening on port ${PORT}`);
   });
+
   return app;
 };
 

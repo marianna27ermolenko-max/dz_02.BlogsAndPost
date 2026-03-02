@@ -1,16 +1,37 @@
 import { Response, Request } from "express";
-import { blogsRepository  } from "../../repositories/blogs-repositories";
+import { blogsService } from "../../application/blogs.service";
 import { HttpStatus } from "../../../core/types/http.status";
-import { mapToBlogViewModel } from "../mappers/map-blog-view-model";
+import { BlogsQueryInput } from "../input/blogs-query.input"; 
+import { matchedData } from "express-validator";
+import { setDefaultSortAndPaginationIfNotExist } from "../../../core/helpers/set-default-sort-and-pagination";
+import { BlogSortField } from "../input/blogs-sort-field";
+import { mapToBlogListPaginatedOutput } from "../mappers/map-to-blog-list-paginated-output.util.ts";
 
 
-export async function getBlogsListHandler(req: Request, res: Response){
+export async function getBlogsListHandler(req: Request<{}, {}, {}, BlogsQueryInput>, res: Response){
+
 
   try{
-    const allBlogs = await blogsRepository.findAllBlogs();
-    const BlogsViewModels = allBlogs.map(mapToBlogViewModel)
-    res.status(HttpStatus.OK).json(BlogsViewModels);
+      
+      //matchedData — это функция из библиотеки express-validator. Она достаёт из запроса только те поля, которые прошли валидаторы. 
+      const sanitizedQuery = matchedData<BlogsQueryInput>(req, {  
+      locations: ['query'], // - "Бери данные только из req.query"
+      includeOptionals: true, // -Верни даже необязательные поля, если они есть
+    }); 
+     
+    //потом применяем дефолты(создаем функцию которая если нет значения добавляет дефолтное)
+    const pagination = setDefaultSortAndPaginationIfNotExist<BlogSortField>(sanitizedQuery);
+    
+    const { items, totalCount }  = await blogsService.findMany(pagination); 
+
+     const blogsListOutput = mapToBlogListPaginatedOutput(items, {
+      pageNumber: Number(pagination.pageNumber),
+      pageSize: Number(pagination.pageSize),
+      totalCount,
+    });
+
+    res.json(blogsListOutput);
   } catch (err: unknown){
     res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);
     }
-}
+} 

@@ -27,3 +27,5 @@ export const blogIdPostValidation = body('blogId')
 export const postInputValidationMiddleware = [
 titlePostValidation, shortDescriptionPostValidation, contentPostValidation, blogIdPostValidation
 ]
+
+export const postInputWithoutBlogIdValidationMiddleware = [titlePostValidation, shortDescriptionPostValidation, contentPostValidation]

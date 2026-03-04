@@ -13,3 +13,5 @@ export const blogIdValidation = param('blogId')
   .withMessage('blogId is required') // Проверка на наличие
   .isString()
   .withMessage('blogId must be a string') // Проверка, что это строка
+  .isMongoId()
+  .withMessage('Incorrect format of ObjectId'); // Проверка на формат ObjectId

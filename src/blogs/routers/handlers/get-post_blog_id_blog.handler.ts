@@ -15,43 +15,45 @@ export async function getPostThroughBlogId(
   req: Request<{ blogId: string }, {}, {}, PostsQueryInput>,
   res: Response,
 ) {
-
   try {
     const blogId = req.params.blogId;
-    console.log("blogId", );
+    console.log("blogId");
     
+    const blog = await blogsService.findByIdOrFail(blogId);
+    if (!blog) {
+      return res.status(HttpStatus.NOT_FOUND).json(
+        APIErrorResult([
+          { message: "Blog not found", field: "blogId"}])
+      );
+    }
+
     const sanitizedQuery = matchedData<PostsQueryInput>(req, {
       locations: ["query"], // - "Бери данные только из req.query"
       includeOptionals: true, // -Верни даже необязательные поля, если они есть
     });
 
-    const blog = await blogsService.findByIdOrFail(blogId);
-    if (!blog) {
-         return res.status(HttpStatus.NOT_FOUND).json(
-              APIErrorResult([
-                {
-                  message: "Blog not found",
-                  field: "blogId",
-                },
-              ]),
-            );
-    }
+    const pageNumber = Number(sanitizedQuery.pageNumber);
+    const pageSize = Number(sanitizedQuery.pageSize);
 
     //потом применяем дефолты(создаем функцию которая если нет значения добавляет дефолтное)
-    const pagination =
-      setDefaultPostPagination<PostSortField>(sanitizedQuery);
-      console.log(sanitizedQuery);
-      
+    const pagination = setDefaultPostPagination<PostSortField>({
+     ...sanitizedQuery,
+       pageNumber,
+       pageSize
+    });
 
-    const { items, totalCount } = await postsService.findManyByBlogId(blogId, pagination);
+    const { items, totalCount } = await postsService.findManyByBlogId(
+      blogId,
+      pagination,
+    );
 
-    const blogsListOutput = mapToPostListPaginatedOutput(items, {
-      pageNumber: Number(pagination.pageNumber),
-      pageSize: Number(pagination.pageSize),
+    const postsOutput = mapToPostListPaginatedOutput(items, {
+      pageNumber: pagination.pageNumber,
+      pageSize: pagination.pageSize,
       totalCount,
     });
 
-    res.json(blogsListOutput);
+    res.status(HttpStatus.OK).json(postsOutput);
 
   } catch (e: unknown) {
     res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);

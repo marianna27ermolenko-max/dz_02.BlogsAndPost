@@ -4,6 +4,7 @@ import { WithId } from "mongodb";
 import { blogsRepository } from "../repositories/blogs-repositories";
 import { PaginationAndSorting } from "../../core/types/pagination_and_sorting";
 import { BlogSortField } from "../routers/input/blogs-sort-field";
+import { postsRepository } from "../../posts/repositories/post-repositories";
 
 
 export const blogsService = {
@@ -33,13 +34,15 @@ async createBlog(newBlog: Blog): Promise<WithId<Blog>> {  //НАДО ПОСМО�
 
 async updateBlog(id: string, dto: BlogInputModel): Promise<void>{
 
-   return await blogsRepository.updateBlog(id,
+    await blogsRepository.updateBlog(id,
      {
     name: dto.name, 
     description: dto.description, 
     websiteUrl: dto.websiteUrl,
      }
     )
+
+    await postsRepository.updateManyBlogNameByBlogId(id, dto.name)
 },
 
 async deleteBlog(id: string): Promise<void>{ 

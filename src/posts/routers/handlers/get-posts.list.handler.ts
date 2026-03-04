@@ -5,13 +5,11 @@ import { PostsQueryInput } from "../input/posts-query.input";
 import { mapToPostListPaginatedOutput } from "../mappers/map-to-post-list-paginated-output.util"; 
 import { matchedData } from "express-validator";
 import { PostSortField } from "../input/post-sort-field";
-import { setDefaultSortAndPaginationIfNotExist } from "../../../core/helpers/set-default-sort-and-pagination";
 import { setDefaultPostPagination } from "../../../core/helpers/set-default-post-sort-and-pagination";
 
 export async function getPostListHandler(req: Request<{}, {}, {}, PostsQueryInput>, res: Response){ 
 try{
-
-
+    
 const sanitazedQuery = matchedData<PostsQueryInput>(req, {  
       locations: ['query'], // - "Бери данные только из req.query"
       includeOptionals: true, // - Верни даже необязательные поля, если они есть

@@ -18,9 +18,15 @@ export async function getBlogsListHandler(req: Request<{}, {}, {}, BlogsQueryInp
       locations: ['query'], // - "Бери данные только из req.query"
       includeOptionals: true, // -Верни даже необязательные поля, если они есть
     }); 
-     
+
+    const pageNumber = Number(sanitizedQuery.pageNumber);
+    const pageSize = Number(sanitizedQuery.pageSize);
+
     //потом применяем дефолты(создаем функцию которая если нет значения добавляет дефолтное)
-    const pagination = setDefaultSortAndPaginationIfNotExist<BlogSortField>(sanitizedQuery);
+    const pagination = setDefaultSortAndPaginationIfNotExist<BlogSortField>({
+      ...sanitizedQuery,
+       pageNumber,
+       pageSize});
     
     const { items, totalCount }  = await blogsService.findMany(pagination); 
 
@@ -30,7 +36,7 @@ export async function getBlogsListHandler(req: Request<{}, {}, {}, BlogsQueryInp
       totalCount,
     });
 
-    res.json(blogsListOutput);
+    res.status(HttpStatus.OK).json(blogsListOutput);
   } catch (err: unknown){
     res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);
     }

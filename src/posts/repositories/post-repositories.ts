@@ -99,6 +99,14 @@ async updatePost(id: string, dto: PostInputModel): Promise<void> {
     return;
 },
 
+async updateManyBlogNameByBlogId(blogId: string, newblogName: string): Promise<void>{
+await postCollection.updateMany(
+    {blogId: blogId},
+    {$set: { blogName: newblogName }}
+);
+return;
+},
+
 async deletePost(id: string): Promise<void> {
 
 const deleteResult = await postCollection.deleteOne({_id: new ObjectId(id)});

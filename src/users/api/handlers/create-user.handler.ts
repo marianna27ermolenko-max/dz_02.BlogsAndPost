@@ -13,13 +13,15 @@ export async function createUserHandler(req: RequestWithBody<CreateUserDto>, res
     const { login, password, email } = req.body;
     const userId = await usersService.createUser({ login, password, email });
 
-    const newUser = await usersQwRepository.findById(userId);
+    console.log(userId)
+
+    const newUser = await usersQwRepository.findUserById(userId);
+
+    console.log(newUser)
 
     res.status(HttpStatus.CREATED).json(newUser!);
 
 }catch(e: any){
-
-    console.error(e)
 
     res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);
 }

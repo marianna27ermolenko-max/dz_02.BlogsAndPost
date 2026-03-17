@@ -11,7 +11,6 @@ export const blogsService = {
 
 async findMany(queryDTO: PaginationAndSorting<BlogSortField> & 
   {searchNameTerm?: string | null;}):Promise<{ items: WithId<Blog>[]; totalCount: number }> { 
-   console.log(queryDTO)
   return blogsRepository.findMany(queryDTO);
 },
 
@@ -28,6 +27,7 @@ async createBlog(newBlog: Blog): Promise<WithId<Blog>> {  //НАДО ПОСМО�
   };
 
   const createdBlog = await blogsRepository.createBlog(blogWithDefaults);  
+  console.log(createdBlog);
   return createdBlog;
 },
 

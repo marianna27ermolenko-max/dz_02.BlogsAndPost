@@ -4,18 +4,19 @@ import { WithId } from "mongodb";
 import { postsRepository } from "../repositories/post-repositories";
 import { PaginationAndSorting } from "../../common/types/pagination_and_sorting";
 import { PostSortField } from "../routers/input/post-sort-field";
+import { ICommentDB } from "../../comments/types/comment.db.interface";
 
 
 export const postsService = {
 
-async findMany(queryDto: PaginationAndSorting<PostSortField>): Promise<{items: WithId<Post>[], totalCount: number}> {
-return postsRepository.findMany(queryDto);
-},
-
-
-async findManyByBlogId(blogId: string, queryDto: PaginationAndSorting<PostSortField>): Promise<{items: WithId<Post>[], totalCount: number}> {
-return postsRepository.findManyBlogId(blogId, queryDto);
-},
+// async findMany(queryDto: PaginationAndSorting<PostSortField>): Promise<{items: WithId<Post>[], totalCount: number}> {
+// return postsRepository.findMany(queryDto);
+// },
+// async findManyByBlogId(blogId: string, queryDto: PaginationAndSorting<PostSortField>): Promise<{items: WithId<Post>[], totalCount: number}> {
+// return postsRepository.findManyBlogId(blogId, queryDto);
+// },
+ 
+//////
 
 async findPostById(id: string): Promise<WithId<Post> | null> {
 return postsRepository.findPostById(id);
@@ -26,12 +27,17 @@ return postsRepository.createPost(newPost);
 },
 
 async updatePost(id: string, dto: PostInputModel): Promise<void> {
-
-     return postsRepository.updatePost(id, dto);
+return postsRepository.updatePost(id, dto);
 },
   
 
 async deletePost(id: string): Promise<void> {
 return postsRepository.deletePost(id);
+},
+
+async createCommentByPostId(newComment: ICommentDB): Promise<string>{
+const createComment = await postsRepository.createCommentByPostId(newComment);
+return createComment;
 }
+
 };

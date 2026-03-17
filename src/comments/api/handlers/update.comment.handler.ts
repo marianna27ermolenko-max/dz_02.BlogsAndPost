@@ -1,0 +1,36 @@
+import { Response } from "express";
+import { HttpStatus } from "../../../common/types/http.status";
+import { RequestWithParamsAndBody } from "../../../common/types/requests";
+import { CommentBodyDto } from "../../types/comment.body.dto";
+import { CommentIdType } from "../../../common/types/id";
+import { commentsServer } from "../../domain/comments.service";
+
+export async function updateCommentHandler(
+  req: RequestWithParamsAndBody<CommentIdType, CommentBodyDto>,
+  res: Response,
+) {
+  try {
+  
+   const userId = req.userId!;
+   const commentId = req.params.commentId;
+
+   const user = await commentsServer.getUserByUserId(userId);
+   if(!user) return res.sendStatus(HttpStatus.NOT_FOUND);
+
+   const comment = await commentsServer.getCommentById(commentId);
+   if(!comment) return res.sendStatus(HttpStatus.NOT_FOUND);
+
+   if(userId !== comment.commentatorInfo.userId) return res.sendStatus(HttpStatus.FORBIDDEN);
+
+  //  const checkUserIdWithComment = await commentsServer.checkUserIdWithComment(userId, commentId);
+  //  if(!checkUserIdWithComment){ return res.sendStatus(HttpStatus.FORBIDDEN)};
+
+   const updateComment =  await commentsServer.updateCommentCommentId(commentId, req.body); 
+   if(!updateComment){ return res.sendStatus(HttpStatus.BAD_REQUEST)}
+
+   res.sendStatus(HttpStatus.NO_CONTENT);
+
+  } catch (e: unknown) {
+    res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+}

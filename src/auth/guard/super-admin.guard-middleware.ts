@@ -2,7 +2,7 @@ import { NextFunction, Response, Request } from "express";
 import { HttpStatus } from "../../common/types/http.status";
 
 
-export const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
+export const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';     //мы это должны вынести в сеттинг
 export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'qwerty';
 
 export const superAdminGuardMiddleware = (
@@ -25,7 +25,7 @@ if(authType !== 'Basic'){
     return;
 }
 
-const credentials = Buffer.from(token, 'base64').toString('utf-8');
+const credentials = Buffer.from(token, 'base64').toString('utf-8');  // это способ декодировать Base64‑строку обратно в обычный читаемый текст.
 const [username, password] = credentials.split(':');
 
 if(username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD){

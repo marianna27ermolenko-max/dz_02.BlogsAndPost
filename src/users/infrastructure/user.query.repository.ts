@@ -5,6 +5,7 @@ import { IUserBD } from "../types/user.db.interface";
 import { SortQueryFilterType } from "../../common/types/sortQueryFilter.type";
 import { IPagination } from "../../common/types/pagination";
 import { SortDirections } from "../../common/types/sort-direction"; 
+import { IUserAuthMe } from "../types/user.auth.me.output";
 
 
 
@@ -21,9 +22,6 @@ export const usersQwRepository = {
       searchLoginTerm,
     } = sortQueryDto;
 
-    console.log(sortQueryDto);
-    
-
     const sortDir = sortDirection === SortDirections.Asc ? 1 : -1;
 
     const skip = (pageNumber - 1) * pageSize;
@@ -39,10 +37,6 @@ export const usersQwRepository = {
         filter.$or.push({ login: { $regex: searchLoginTerm, $options: "i" } });
       }
     }
-  
-    console.log(filter);
-    
-
 
     const totalCount = await userCollection.countDocuments(filter);
 
@@ -62,16 +56,16 @@ export const usersQwRepository = {
     };
   },
 
-  async findById(id: string): Promise<IUserView | null> {
+  async findUserById(id: string): Promise<IUserView | null> {
     const user = await userCollection.findOne({ _id: new ObjectId(id) });
 
-    
     if (!user) {
       return null;
     }
     
     return this._getInView(user);
   },
+
 
   _getInView(user: WithId<IUserBD>): IUserView {
     return {
@@ -81,4 +75,24 @@ export const usersQwRepository = {
       createdAt: user.createdAt.toString(),
     };
   },
+
+   async findUserByUserId(userId: string): Promise<IUserAuthMe | null>{
+
+    const user = await userCollection.findOne({ _id: new ObjectId(userId) });
+
+    if(!user) return null;
+
+    return this._getInViewAuthMe(user);
+  },
+
+   _getInViewAuthMe(user: WithId<IUserBD>): IUserAuthMe {
+    return {
+     
+      login: user.login,
+      email: user.email,  
+      userId: user._id.toString(),
+
+    };
+  },
+
 };

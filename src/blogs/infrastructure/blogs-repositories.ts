@@ -54,7 +54,7 @@ async createBlog(newBlog: Blog): Promise<WithId<Blog>> {
 
     const insertResult = await blogCollection.insertOne(newBlog);
     const createdBlog = await blogCollection.findOne({ _id: insertResult.insertedId }) as WithId<Blog>;
-    return createdBlog; //ПОЧЕМУ С ЛЕШЕЙ ЭТО ПОСТАВИЛИ???
+    return createdBlog; 
 },
 
 async updateBlog(id: string, dto: BlogInputModel): Promise<void>{

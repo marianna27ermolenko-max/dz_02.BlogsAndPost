@@ -10,6 +10,7 @@ import { PostSortField } from "../../../posts/routers/input/post-sort-field";
 import { APIErrorResult } from "../../../common/utils/APIErrorResult";
 import { PostsQueryInput } from "../../../posts/routers/input/posts-query.input";
 import { setDefaultPostPagination } from "../../../common/helpers/set-default-post-sort-and-pagination";
+import { postsQwRepository } from "../../../posts/repositories/post-query.repositories";
 
 export async function getPostThroughBlogId(
   req: Request<{ blogId: string }, {}, {}, PostsQueryInput>,
@@ -17,7 +18,6 @@ export async function getPostThroughBlogId(
 ) {
   try {
     const blogId = req.params.blogId;
-    console.log("blogId");
     
     const blog = await blogsService.findByIdOrFail(blogId);
     if (!blog) {
@@ -42,7 +42,7 @@ export async function getPostThroughBlogId(
        pageSize
     });
 
-    const { items, totalCount } = await postsService.findManyByBlogId(
+    const { items, totalCount } = await postsQwRepository.findManyBlogId(
       blogId,
       pagination,
     );

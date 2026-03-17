@@ -15,9 +15,6 @@ export async function getUsersHandler(req: RequestWithQuery<UsersQueryFieldsType
          locations: ['query'], // - "Бери данные только из req.query"
          includeOptionals: true, // -Верни даже необязательные поля, если они есть
        });
-
-       console.log(sanitizedQuery);
-       
        
        const  pageNumber = Number(sanitizedQuery.pageNumber);  //УДАЛИТЬ
        const  pageSize = Number(sanitizedQuery.pageSize);
@@ -27,15 +24,10 @@ export async function getUsersHandler(req: RequestWithQuery<UsersQueryFieldsType
         pageNumber,
         pageSize,
      });
-
-     console.log(pagination);
      
+      const listUsers = await usersQwRepository.findAllUsers(pagination);
 
-        const listUsers = await usersQwRepository.findAllUsers(pagination);
-
-      console.log(listUsers);  
-
-        res.status(HttpStatus.OK).json(listUsers)
+      res.status(HttpStatus.OK).json(listUsers)
 
        }catch(e: unknown){
         res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);

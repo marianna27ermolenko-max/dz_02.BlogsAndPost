@@ -30,7 +30,8 @@ export async function createPostHandler(req: Request, res: Response) {
       createdAt: new Date().toISOString()
     };
 
-    const createPost = await postsService.createPost(newPost)
+    const createPost = await postsService.createPost(newPost) //надо переписать на квери - вернуть здесь айди и отправить на выдачу в квери он вернет обьет промапить
+
     const PostViewModel = mapToPostViewMolel(createPost)
     res.status(HttpStatus.CREATED).json(PostViewModel)
   } catch (err: unknown){

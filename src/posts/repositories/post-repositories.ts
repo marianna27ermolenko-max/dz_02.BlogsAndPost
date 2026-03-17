@@ -1,79 +1,80 @@
-import { postCollection } from "../../db/mongo.db";
+import { commentsCollection, postCollection } from "../../db/mongo.db";
 import { Post} from "../types/post.type";
 import { PostInputModel } from "../dto/post.dto.view.input";
 import { WithId, ObjectId } from "mongodb";
 import { PaginationAndSorting } from "../../common/types/pagination_and_sorting";
 import { PostSortField } from "../routers/input/post-sort-field";
+import { ICommentDB } from "../../comments/types/comment.db.interface";
 
 
 export const postsRepository = {
 
-async findMany(queryDto: PaginationAndSorting<PostSortField>): Promise<{items: WithId<Post>[], totalCount: number}> {
+// async findMany(queryDto: PaginationAndSorting<PostSortField>): Promise<{items: WithId<Post>[], totalCount: number}> {
 
-const {
-    pageNumber,
-    pageSize,
-    sortBy,
-    sortDirection,
-} = queryDto;
+// const {
+//     pageNumber,
+//     pageSize,
+//     sortBy,
+//     sortDirection,
+// } = queryDto;
 
-const skip = (pageNumber - 1) * pageSize;
-const filter: any = {};
+// const skip = (pageNumber - 1) * pageSize;
+// const filter: any = {};
 
-const items = await postCollection
-      .find(filter)
+// const items = await postCollection
+//       .find(filter)
  
-      // "asc" (по возрастанию), то используется 1
-      // "desc" — то -1 для сортировки по убыванию. - по алфавиту от Я-А, Z-A
-      .sort({[sortBy]: sortDirection})
+//       // "asc" (по возрастанию), то используется 1
+//       // "desc" — то -1 для сортировки по убыванию. - по алфавиту от Я-А, Z-A
+//       .sort({[sortBy]: sortDirection})
  
-      // пропускаем определённое количество док. перед тем, как вернуть нужный набор данных.
-      .skip(skip)
+//       // пропускаем определённое количество док. перед тем, как вернуть нужный набор данных.
+//       .skip(skip)
  
-      // ограничивает количество возвращаемых документов до значения pageSize
-      .limit(pageSize)
-      .toArray();
+//       // ограничивает количество возвращаемых документов до значения pageSize
+//       .limit(pageSize)
+//       .toArray();
 
-      const totalCount = await postCollection.countDocuments(filter)
+//       const totalCount = await postCollection.countDocuments(filter)
 
-return  {items, totalCount };
-},
+// return  {items, totalCount };
+// },
 
 
-async findManyBlogId(blogId: string, queryDto: PaginationAndSorting<PostSortField>): Promise<{items: WithId<Post>[], totalCount: number}> {
+// async findManyBlogId(blogId: string, queryDto: PaginationAndSorting<PostSortField>): Promise<{items: WithId<Post>[], totalCount: number}> {
 
-const {
-    pageNumber,
-    pageSize,
-    sortBy,
-    sortDirection,
-} = queryDto;
+// const {
+//     pageNumber,
+//     pageSize,
+//     sortBy,
+//     sortDirection,
+// } = queryDto;
 
-const skip = (pageNumber - 1) * pageSize;
-const filter: any = {};
+// const skip = (pageNumber - 1) * pageSize;
+// const filter: any = {};
 
-if(blogId){
-    filter.blogId = blogId;
-}
+// if(blogId){
+//     filter.blogId = blogId;
+// }
 
-const items = await postCollection
-      .find(filter)
+// const items = await postCollection
+//       .find(filter)
  
-      // "asc" (по возрастанию), то используется 1
-      // "desc" — то -1 для сортировки по убыванию. - по алфавиту от Я-А, Z-A
-      .sort({[sortBy]: sortDirection})
+//       // "asc" (по возрастанию), то используется 1
+//       // "desc" — то -1 для сортировки по убыванию. - по алфавиту от Я-А, Z-A
+//       .sort({[sortBy]: sortDirection})
  
-      // пропускаем определённое количество док. перед тем, как вернуть нужный набор данных.
-      .skip(skip)
+//       // пропускаем определённое количество док. перед тем, как вернуть нужный набор данных.
+//       .skip(skip)
  
-      // ограничивает количество возвращаемых документов до значения pageSize
-      .limit(pageSize)
-      .toArray();
+//       // ограничивает количество возвращаемых документов до значения pageSize
+//       .limit(pageSize)
+//       .toArray();
 
-      const totalCount = await postCollection.countDocuments(filter)
+//       const totalCount = await postCollection.countDocuments(filter)
 
-return  {items, totalCount };
-},
+// return  {items, totalCount };
+// },
 
 async findPostById(id: string): Promise<WithId<Post> | null> {
 return postCollection.findOne({_id: new ObjectId(id)});
@@ -82,6 +83,11 @@ return postCollection.findOne({_id: new ObjectId(id)});
 async createPost(newPost: Post): Promise<WithId<Post>> {
 const insertResult = await postCollection.insertOne(newPost);
 return {...newPost, _id: insertResult.insertedId}
+},
+
+async createCommentByPostId(newComment: ICommentDB): Promise<string> {
+const insertResult = await commentsCollection.insertOne(newComment);
+return insertResult.insertedId.toString();
 },
 
 async updatePost(id: string, dto: PostInputModel): Promise<void> {
@@ -108,11 +114,8 @@ return;
 },
 
 async deletePost(id: string): Promise<void> {
-
 const deleteResult = await postCollection.deleteOne({_id: new ObjectId(id)});
-if(deleteResult.deletedCount < 1){
-throw new Error('Post not exist')
-};
+if(deleteResult.deletedCount < 1){ throw new Error('Post not exist') };
 return;
 },
 

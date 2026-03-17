@@ -18,6 +18,7 @@ export async function createBlogHandler(req: Request<{}, {}, BlogInputModel>, re
   }
   
   const createBlog = await blogsService.createBlog(newBlog);
+
   const BlogViewModel = mapToBlogViewModel(createBlog);
   res.status(HttpStatus.CREATED).json(BlogViewModel);
 

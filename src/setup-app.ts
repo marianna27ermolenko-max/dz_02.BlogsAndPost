@@ -16,6 +16,7 @@ app.get('/', (req: Request, res: Response) => {
     res.status(200).send('Hello users!');
 });
 
+
 app.use(BLOGS_PATH, blogsRouter);
 app.use(POSTS_PATH, postsRouter);
 app.use(TESTING_PATH, testingRouter);

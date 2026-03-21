@@ -1,12 +1,12 @@
 import jwt  from "jsonwebtoken";
 import { SETTINGS } from "../../common/settings/setting";
-import { IUserBD } from "../../users/types/user.db.interface";
 import { WithId } from "mongodb";
+import { UserAccountDbType } from "../types/user.account.db.type";
 
 
 export const jwtService = {
                                                               // string - токен возвращается в строке , но может опр есть шаблон - посмотреть 
-    async createToken(user: WithId<IUserBD>): Promise<string>{
+    async createToken(user: WithId<UserAccountDbType>): Promise<string>{ //передать юзер-айди не юзер
         
         const token = jwt.sign({userId: user._id}, SETTINGS.JWT_SECRET, {expiresIn: '24h'});
         return token;

@@ -11,7 +11,7 @@ export async function createUserHandler(req: RequestWithBody<CreateUserDto>, res
     try {
 
     const { login, password, email } = req.body;
-    const userId = await usersService.createUser({ login, password, email });
+    const userId = await usersService.createUserThroughtAdmin({ login, password, email });
 
     console.log(userId)
 

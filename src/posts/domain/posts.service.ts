@@ -18,7 +18,7 @@ export const postsService = {
  
 //////
 
-async findPostById(id: string): Promise<WithId<Post> | null> {
+async findPostById(id: string): Promise<WithId<Post> | null> {  //ПОДУМАТЬ ПЕРЕНОСИТЬ ЛИ В СЕРВЕС БЛОГ
 return postsRepository.findPostById(id);
 },
 

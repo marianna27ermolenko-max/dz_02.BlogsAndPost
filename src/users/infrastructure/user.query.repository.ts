@@ -1,11 +1,11 @@
 import { ObjectId, WithId } from "mongodb";
 import { userCollection } from "../../db/mongo.db";
 import { IUserView } from "../types/user.view.interface";
-import { IUserBD } from "../types/user.db.interface";
 import { SortQueryFilterType } from "../../common/types/sortQueryFilter.type";
 import { IPagination } from "../../common/types/pagination";
 import { SortDirections } from "../../common/types/sort-direction"; 
 import { IUserAuthMe } from "../types/user.auth.me.output";
+import { UserAccountDbType } from "../../auth/types/user.account.db.type";
 
 
 
@@ -67,29 +67,28 @@ export const usersQwRepository = {
   },
 
 
-  _getInView(user: WithId<IUserBD>): IUserView {
+  _getInView(user: WithId<UserAccountDbType>): IUserView {
     return {
       id: user._id.toString(),
-      login: user.login,
-      email: user.email,
-      createdAt: user.createdAt.toString(),
+      login: user.accountData.login,
+      email: user.accountData.email,
+      createdAt: user.accountData.createdAt.toString(),
     };
   },
 
    async findUserByUserId(userId: string): Promise<IUserAuthMe | null>{
 
     const user = await userCollection.findOne({ _id: new ObjectId(userId) });
-
     if(!user) return null;
 
     return this._getInViewAuthMe(user);
   },
 
-   _getInViewAuthMe(user: WithId<IUserBD>): IUserAuthMe {
+   _getInViewAuthMe(user: WithId<UserAccountDbType>): IUserAuthMe {
     return {
      
-      login: user.login,
-      email: user.email,  
+      login: user.accountData.login,
+      email: user.accountData.email,  
       userId: user._id.toString(),
 
     };

@@ -26,7 +26,7 @@ try{
    blogId: req.body.blogId,
    };
 
-   await postsService.updatePost(id, dto);
+   await postsService.updatePost(id, dto); //СЕРВЕС ОДИН РАЗ ДОЛЖЕН ВЫЗЫВАТЬСЯ !!! ЛОГИКУ ПЕРЕПИСАТЬ
    res.sendStatus(HttpStatus.NO_CONTENT); 
 } catch (err: unknown) {
     res.sendStatus(HttpStatus.INTERNAL_SERVER_ERROR);

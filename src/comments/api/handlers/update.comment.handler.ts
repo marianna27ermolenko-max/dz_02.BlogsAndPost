@@ -6,7 +6,7 @@ import { CommentIdType } from "../../../common/types/id";
 import { commentsServer } from "../../domain/comments.service";
 
 export async function updateCommentHandler(
-  req: RequestWithParamsAndBody<CommentIdType, CommentBodyDto>,
+  req: RequestWithParamsAndBody<{commentId:string}, CommentBodyDto>,
   res: Response,
 ) {
   try {
@@ -14,7 +14,7 @@ export async function updateCommentHandler(
    const userId = req.userId!;
    const commentId = req.params.commentId;
 
-   const user = await commentsServer.getUserByUserId(userId);
+   const user = await commentsServer.getUserByUserId(userId); //УДалить!!! - либо перенести проверку в мидлваре токена
    if(!user) return res.sendStatus(HttpStatus.NOT_FOUND);
 
    const comment = await commentsServer.getCommentById(commentId);
@@ -25,7 +25,7 @@ export async function updateCommentHandler(
   //  const checkUserIdWithComment = await commentsServer.checkUserIdWithComment(userId, commentId);
   //  if(!checkUserIdWithComment){ return res.sendStatus(HttpStatus.FORBIDDEN)};
 
-   const updateComment =  await commentsServer.updateCommentCommentId(commentId, req.body); 
+   const updateComment =  await commentsServer.updateCommentCommentId(commentId, req.body); // !!!!!перенести все вызовы в сервис в этот метод - мы будет их делать внутри
    if(!updateComment){ return res.sendStatus(HttpStatus.BAD_REQUEST)}
 
    res.sendStatus(HttpStatus.NO_CONTENT);

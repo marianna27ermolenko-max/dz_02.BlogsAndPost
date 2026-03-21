@@ -85,7 +85,7 @@ const insertResult = await postCollection.insertOne(newPost);
 return {...newPost, _id: insertResult.insertedId}
 },
 
-async createCommentByPostId(newComment: ICommentDB): Promise<string> {
+async createCommentByPostId(newComment: ICommentDB): Promise<string> { //переместить всервис - оттуда репа комментс
 const insertResult = await commentsCollection.insertOne(newComment);
 return insertResult.insertedId.toString();
 },

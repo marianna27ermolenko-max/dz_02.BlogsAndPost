@@ -17,8 +17,6 @@ export async function createUserHandler(req: RequestWithBody<CreateUserDto>, res
 
     const newUser = await usersQwRepository.findUserById(userId);
 
-    console.log(newUser)
-
     res.status(HttpStatus.CREATED).json(newUser!);
 
 }catch(e: any){

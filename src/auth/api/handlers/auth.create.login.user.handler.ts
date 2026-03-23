@@ -14,6 +14,8 @@ export async function createAuthUserHandler(
   try {
 
     const { loginOrEmail, password } = req.body;
+    console.log(loginOrEmail, password);
+    
 
     const correntUser = await authServer.loginUser(loginOrEmail, password);
      console.log(correntUser);

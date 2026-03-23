@@ -26,7 +26,7 @@ export async function getUsersHandler(req: RequestWithQuery<UsersQueryFieldsType
      });
      
       const listUsers = await usersQwRepository.findAllUsers(pagination);
-
+      
       res.status(HttpStatus.OK).json(listUsers)
 
        }catch(e: unknown){

@@ -9,8 +9,8 @@ export const jwtTokenGuardMiddleware =
     next: NextFunction) => {
 
         const auth = req.headers['authorization'] as string;
-
-        console.log(auth);  //+
+       
+        console.log(auth);
         
 
         if(!auth){
@@ -25,10 +25,8 @@ export const jwtTokenGuardMiddleware =
         }
 
         const userId = await jwtService.getUserIdByToken(token);
-        
         console.log(userId);
         
-
          if(!userId){
             return res.sendStatus(HttpStatus.UNAUTHORIZED);
         }

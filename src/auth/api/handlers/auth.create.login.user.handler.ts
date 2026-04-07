@@ -1,7 +1,7 @@
 import { RequestWithBody } from "../../../common/types/requests";
 import { Response } from "express";
 import { LoginDto } from "../../types/login.dto";
-import { authServer } from "../../domain/auth.service";`~~`
+import { authService } from "../../domain/auth.service";`~~`
 import { HttpStatus } from "../../../common/types/http.status";
 import { ResultStatus } from "../../../common/result/resultCode";
 
@@ -13,7 +13,7 @@ export async function createAuthUserHandler(
   try {
 
     const { loginOrEmail, password } = req.body;
-    const tokens = await authServer.loginUser(loginOrEmail, password);
+    const tokens = await authService.loginUser(loginOrEmail, password);
 
     if(tokens.status === ResultStatus.Unauthorized){ 
       return res.status(HttpStatus.UNAUTHORIZED).json({errorsMessages: tokens.extensions})};

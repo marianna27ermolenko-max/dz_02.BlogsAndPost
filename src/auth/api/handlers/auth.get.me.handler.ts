@@ -1,16 +1,20 @@
 import { Request, Response } from "express";
-import { authServer } from "../../domain/auth.service";
+import { authService } from "../../domain/auth.service";
 import { HttpStatus } from "../../../common/types/http.status";
 
 export async function getAuthUserHandler(req: Request, res: Response) {
 
   try {
     const userId = req.userId;
+    console.log(userId);
+     
+
     if (!userId) {
       return res.sendStatus(HttpStatus.UNAUTHORIZED);
     }
 
-    const user = await authServer.getUserByUserId(userId);
+
+    const user = await authService.getUserByUserId(userId);
     if (!user) {
       return res.sendStatus(HttpStatus.UNAUTHORIZED);
     }

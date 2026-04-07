@@ -7,7 +7,7 @@ describe('GET /', () => {
     const app = express();
     setupApp(app);
 
-    it("should return 'Hello world!'", async () => {
+    it("should return 'Hello users!'", async () => {
 
         const res = await request(app).get('/');
         expect(res.status).toBe(200);

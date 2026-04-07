@@ -7,9 +7,9 @@
     "watch": "tsc -w",
     "dev": "nodemon --inspect dist/index.js",
     "jest": "jest -i",
+    "jest watch": "jest --watch",
     "lint": "eslint --fix .",
-    "format": "prettier --write .",
-    "test": "jest"
+    "format": "prettier --write ."
   },
   "keywords": [],
   "author": "",
@@ -28,7 +28,7 @@
     "nodemailer": "^8.0.2",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
-    "uuid": "^13.0.0",
+    "uuid": "^9.0.1",
     "uuid4": "^2.0.3"
   },
   "devDependencies": {

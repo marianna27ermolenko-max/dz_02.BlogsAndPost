@@ -18,8 +18,6 @@ authRouter
 .post('/registration-confirmation', codeValidation, inputValidationResultMiddleware, userRegistrationConfirmationHandler)
 .post('/registration', bodyAuthRegistration, inputValidationResultMiddleware, userRegistrationHandler) 
 .post('/registration-email-resending', emailValidation, registrationEmailResendingHandler)
-
 .post('/logout', jwtRefreshTokenGuardMiddleware, inputValidationResultMiddleware, logoutHandler)
 .post('/refresh-token', jwtRefreshTokenGuardMiddleware, inputValidationResultMiddleware, createRefreshTokenHandler)
-
 .get('/me', jwtTokenGuardMiddleware, inputValidationResultMiddleware, getAuthUserHandler)

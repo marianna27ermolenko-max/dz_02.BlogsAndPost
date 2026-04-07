@@ -3,7 +3,7 @@ import { body } from "express-validator";
 export const loginOrEmailValidation = body("loginOrEmail")
   .isString()
   .trim()
-  .isLength({ min: 1, max: 20 })
+  .isLength({ min: 3, max: 20 })
   .withMessage("loginOrEmail is not correct");
 
 export const passwordValidation = body("password")

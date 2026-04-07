@@ -14,7 +14,7 @@ export const jwtService = {
 
     async createRefreshToken(user: WithId<UserAccountDbType>): Promise<string>{
 
-        const refreshToken = jwt.sign({userId: user._id}, SETTINGS.JWT_SECRET, {expiresIn: '20s'});   //'20s'
+        const refreshToken = jwt.sign({userId: user._id, createdAt: new Date()}, SETTINGS.JWT_SECRET, {expiresIn: '20s'});  
         return refreshToken;
     },
  

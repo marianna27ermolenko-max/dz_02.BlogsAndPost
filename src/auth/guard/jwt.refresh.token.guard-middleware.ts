@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { HttpStatus } from "../../common/types/http.status";
 import { jwtService } from "../adapters/jwt.service";
 import { usersRepository } from "../../users/infrastructure/user.repository";
-import { authServer } from "../domain/auth.service";
+import { authService } from "../domain/auth.service";
 import { ResultStatus } from "../../common/result/resultCode";
 
 export const jwtRefreshTokenGuardMiddleware = async (
@@ -15,7 +15,7 @@ export const jwtRefreshTokenGuardMiddleware = async (
   
   if (!refreshToken) return res.sendStatus(HttpStatus.UNAUTHORIZED);
 
-  const check = await authServer.checkRefreshTokenBlackList(refreshToken);
+  const check = await authService.checkRefreshTokenBlackList(refreshToken);
   if(check.status === ResultStatus.Forbidden){
     return res.status(HttpStatus.UNAUTHORIZED).json({ errorMessages: check.extensions })}
 

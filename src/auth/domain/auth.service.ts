@@ -13,9 +13,9 @@ import { ResultStatus } from "../../common/result/resultCode";
 import { UserUpdateEmailResending } from "../../users/types/updateUserByEmailResending";
 import { jwtService } from "../adapters/jwt.service";
 import { refreshTokenRepository } from "../infrastructure/refreshToken.repositiry";
-import { RefreshTokenType } from "../types/refrash.token.dto.for.black.list";
 
-export const authServer = {
+
+export const authService = {
   async loginUser(
     loginOrEmail: string,
     password: string,
@@ -31,6 +31,13 @@ export const authServer = {
         errorMessage: "Unauthorized",
         data: null,                                                          
         extensions: [{ field: "loginOrEmail", message: "Email or login is wrong" }],  
+    };
+
+     if (!isCorrectCredentials.emailConfirmation.isConfirmed) return {
+        status: ResultStatus.Unauthorized,
+        errorMessage: "Unauthorized",
+        data: null,                                                          
+        extensions: [{ field: "loginOrEmail", message: "Email not confirm" }],  
     };
     
     const accessToken = await jwtService.createAccessToken(isCorrectCredentials);
@@ -219,7 +226,7 @@ export const authServer = {
      
     const refreshTokenBlackList = await refreshTokenRepository.insertIntoBlackList(refreshToken);
 
-    return {                                  //нАДО ЗДЕСЬ ОБЖЕСТ РЕЗАЛТ?
+    return {                                  
       status: ResultStatus.Success,
       data: refreshTokenBlackList,
       extensions: [],

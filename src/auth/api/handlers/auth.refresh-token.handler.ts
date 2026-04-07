@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { HttpStatus } from "../../../common/types/http.status";
-import { authServer } from "../../domain/auth.service";
+import { authService } from "../../domain/auth.service";
 import { ResultStatus } from "../../../common/result/resultCode";
 
 export async function createRefreshTokenHandler(req: Request, res: Response){
@@ -8,10 +8,10 @@ export async function createRefreshTokenHandler(req: Request, res: Response){
   try {
  
     const  userId = req.userId;
-    const  refreshToken = req.cookies.refreshToken;
+    const  refreshToken = req.cookies.refreshToken;                   //переписать оставить один вызов в сервис
 
-    const insertIntoRefreshTokenBlackList = await authServer.insertIntoBlackListRefreshToken(refreshToken); //закинули в черный список - надо что - то проверять? закинулся ли он?
-    const updatingTokens = await authServer.updatingAccsesAndRefrefhTokens(userId!);
+    await authService.insertIntoBlackListRefreshToken(refreshToken); //закинули в черный список - надо что - то проверять? закинулся ли он?
+    const updatingTokens = await authService.updatingAccsesAndRefrefhTokens(userId!);
 
     if(updatingTokens.status === ResultStatus.Success && updatingTokens.data){
         const [ accessToken, refreshToken ] = updatingTokens.data;

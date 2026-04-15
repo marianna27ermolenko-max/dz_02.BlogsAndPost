@@ -8,16 +8,15 @@ export async function createRefreshTokenHandler(req: Request, res: Response){
   try {
  
     const  userId = req.userId;
-    const  refreshToken = req.cookies.refreshToken;                   //переписать оставить один вызов в сервис
+    const  refreshToken = req.cookies.refreshToken; 
 
-    await authService.insertIntoBlackListRefreshToken(refreshToken); //закинули в черный список - надо что - то проверять? закинулся ли он?
-    const updatingTokens = await authService.updatingAccsesAndRefrefhTokens(userId!);
+    const updatingTokens = await authService.updatingAccessAndRefreshTokens(userId!, refreshToken);
 
     if(updatingTokens.status === ResultStatus.Success && updatingTokens.data){
-        const [ accessToken, refreshToken ] = updatingTokens.data;
-         res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true })
+        const [ newAccessToken, newRefreshToken ] = updatingTokens.data;
+         res.cookie('refreshToken', newRefreshToken, { httpOnly: true, secure: true })
          .status(HttpStatus.OK)
-         .json({ accessToken });
+         .json({ accessToken: newAccessToken });
     }
 
     } catch (err: unknown) {

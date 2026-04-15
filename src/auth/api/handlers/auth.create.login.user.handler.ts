@@ -10,10 +10,14 @@ export async function createAuthUserHandler(
   req: RequestWithBody<LoginDto>,
   res: Response,
 ) {
-  try {
+  try {  //ДОБАВИТЬ ЛОГИКУ НА 429 КОД - КОЛЛИЧЕСВТО ЗАПРОСОВ С ОДНОГО АЙПИ
 
     const { loginOrEmail, password } = req.body;
-    const tokens = await authService.loginUser(loginOrEmail, password);
+    const userAgent = req.headers['user-agent'];
+    const ip = req.ip; 
+    if(typeof ip !== 'string'){ return res.status(HttpStatus.BAD_REQUEST).json({errorsMessages: [{ field: "IP", message: 'Invalid IP address' }]})}
+
+    const tokens = await authService.loginUser(loginOrEmail, password, userAgent, ip);
 
     if(tokens.status === ResultStatus.Unauthorized){ 
       return res.status(HttpStatus.UNAUTHORIZED).json({errorsMessages: tokens.extensions})};
@@ -21,7 +25,7 @@ export async function createAuthUserHandler(
     if(tokens.status === ResultStatus.Success && tokens.data){
      const [ accessToken, refreshToken ] = tokens.data;
 
-        res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true })
+        res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true }) 
          .status(HttpStatus.OK)
          .json({ accessToken });
     }

@@ -10,9 +10,6 @@ export const jwtTokenGuardMiddleware =
 
         const auth = req.headers['authorization'] as string;
        
-        console.log(auth);
-        
-
         if(!auth){
             res.sendStatus(HttpStatus.UNAUTHORIZED);
             return;
@@ -24,8 +21,7 @@ export const jwtTokenGuardMiddleware =
             return
         }
 
-        const userId = await jwtService.getUserIdByToken(token);
-        console.log(userId);
+        const userId = await jwtService.getUserIdFromAccessToken(token);
         
          if(!userId){
             return res.sendStatus(HttpStatus.UNAUTHORIZED);
@@ -35,9 +31,6 @@ export const jwtTokenGuardMiddleware =
         if(!user){
             return res.sendStatus(HttpStatus.UNAUTHORIZED);
         }
-
-        console.log(user);
-        
 
             req.userId = user._id.toString();
             next();

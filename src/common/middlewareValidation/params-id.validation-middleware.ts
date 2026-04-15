@@ -30,4 +30,10 @@ export const postIdValidation = param('postId')
   .isString()
   .withMessage('ID must be a string') // Проверка, что это строка
   .isMongoId()
-  .withMessage('Incorrect format of ObjectId'); // Проверка на формат ObjectId
+  .withMessage('Incorrect format of ObjectId'); // Проверка на формат 
+  
+   export const deviceIdValidation = param('deviceId')
+  .exists()
+  .withMessage('ID is required') 
+  .isString()
+  .withMessage('ID must be a string')

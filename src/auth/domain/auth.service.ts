@@ -12,40 +12,65 @@ import { Result } from "../../common/result/result.type";
 import { ResultStatus } from "../../common/result/resultCode";
 import { UserUpdateEmailResending } from "../../users/types/updateUserByEmailResending";
 import { jwtService } from "../adapters/jwt.service";
-import { refreshTokenRepository } from "../infrastructure/refreshToken.repositiry";
+import { ISessionDB } from "../../security-devices/types/ISessionDB";
+import { sessionsRepository } from "../../security-devices/infrastructure/security-devices.repository";
 
 
 export const authService = {
   async loginUser(
     loginOrEmail: string,
     password: string,
+    userAgent: string = 'unknown',
+    ip: string,
   ): Promise<Result<string[] | null>>{
 
-    const isCorrectCredentials = await this.checkUserCredentials(
+    const user = await this.checkUserCredentials(
       loginOrEmail,
       password,
     );
 
-    if (!isCorrectCredentials) return {
+    if (!user) return {
         status: ResultStatus.Unauthorized,
         errorMessage: "Unauthorized",
         data: null,                                                          
         extensions: [{ field: "loginOrEmail", message: "Email or login is wrong" }],  
     };
 
-     if (!isCorrectCredentials.emailConfirmation.isConfirmed) return {
+     if (!user.emailConfirmation.isConfirmed) return {
         status: ResultStatus.Unauthorized,
         errorMessage: "Unauthorized",
         data: null,                                                          
         extensions: [{ field: "loginOrEmail", message: "Email not confirm" }],  
     };
     
-    const accessToken = await jwtService.createAccessToken(isCorrectCredentials);
-    const refreshToken = await jwtService.createRefreshToken(isCorrectCredentials);
+    const accessToken = await jwtService.createAccessToken(user);
+
+    const deviceId = uuidv4();
+    const refreshToken = await jwtService.createRefreshToken(user, deviceId);
+    const payloadRefreshToken = await jwtService.getPayloadByRefreshToken(refreshToken);
+
+    if(!payloadRefreshToken) return {
+        status: ResultStatus.Unauthorized,
+        errorMessage: "Unauthorized",
+        data: null,                                                          
+        extensions: [{ field: "PayloadRefreshToken", message: "Refresh token is wrong" }],  
+    };
+    
+
+    const session: ISessionDB = {
+    userId: user._id.toString(),
+    ip, 
+    title: userAgent,
+    lastActiveDate: new Date(payloadRefreshToken?.iat * 1000).toISOString(), 
+    expirationDate: new Date(payloadRefreshToken?.exp * 1000).toISOString(), 
+    deviceId,
+    }
+
+    await sessionsRepository.createSession(session);
 
     return {
       status: ResultStatus.Success,
-      data: [accessToken, refreshToken],
+      data: [ accessToken, refreshToken, payloadRefreshToken.deviceId ], //payloadRefreshToken.deviceId - вынули чтобы тесты могли норм тестировать 
       extensions: [],
     };; 
   },
@@ -176,7 +201,7 @@ export const authService = {
         errorMessage: "Bad Request",
         data: null,
         extensions: [{ field: "email", message: "Email address has already been confirmed or the user has not been found." }],
-      };;
+      };
 
     const updateUser: UserUpdateEmailResending = {  
      
@@ -185,10 +210,10 @@ export const authService = {
 
     };
      
-    const resultUpdateUser = await usersRepository.updateUserByEmailResending(email, updateUser);
+    await usersRepository.updateUserByEmailResending(email, updateUser);
     
     try {
-      const sendEmail = await nodemailerServise.sendEmail(
+        await nodemailerServise.sendEmail(
         confirmUser.accountData.email,
         updateUser.confirmationCode!,
       );
@@ -204,55 +229,111 @@ export const authService = {
     };;
   },
 
-    async updatingAccsesAndRefrefhTokens(
+    async updatingAccessAndRefreshTokens(
     userId: string,
+    refreshToken: string,
   ): Promise<Result<string[] | null>>{
 
-    const user = await usersRepository.findById(userId)
+    const user = await usersRepository.findById(userId);
+
+    const payloadRefreshToken = await jwtService.getPayloadByRefreshToken(refreshToken);
+    if(!payloadRefreshToken) return {
+        status: ResultStatus.Unauthorized,
+        errorMessage: "Unauthorized",
+        data: null,                                                          
+        extensions: [{ field: "PayloadRefreshToken", message: "Refresh token is wrong" }],  
+    };
+
+    const { deviceId } = payloadRefreshToken;
     
-    const accessToken = await jwtService.createAccessToken(user!);  //юзер точно есть так как мы проверили это в мидлваре
-    const refreshToken = await jwtService.createRefreshToken(user!);
+    const newAccessToken = await jwtService.createAccessToken(user!);  //юзер точно есть так как мы проверили это в мидлваре
+    const newRefreshToken = await jwtService.createRefreshToken(user!, deviceId); 
+
+    const payloadNewRefreshToken = await jwtService.getPayloadByRefreshToken(newRefreshToken);
+    if(!payloadNewRefreshToken) return {
+        status: ResultStatus.Unauthorized,
+        errorMessage: "Unauthorized",
+        data: null,                                                          
+        extensions: [{ field: "PayloadRefreshToken", message: "Refresh token is wrong" }],  
+    };
+
+    const dataIapRefresh = new Date(payloadNewRefreshToken.iat * 1000).toISOString();
+    const dataExpRefresh = new Date(payloadNewRefreshToken.exp * 1000).toISOString();
+
+    await sessionsRepository.updateLastActiveDate( deviceId, dataIapRefresh ) ; //обновили дату сессии(сщздания и протухания)
+    await sessionsRepository.updateExpDateRefreshToken( deviceId, dataExpRefresh )
 
     return {
       status: ResultStatus.Success,
-      data: [accessToken, refreshToken],
+      data: [ newAccessToken, newRefreshToken ],
       extensions: [],
-    };; 
+    };
   },
 
-    async insertIntoBlackListRefreshToken(
-    refreshToken: string,
-  ): Promise<Result<string | null>>{
-     
-    const refreshTokenBlackList = await refreshTokenRepository.insertIntoBlackList(refreshToken);
+    async deleteSession( refreshToken: string ): Promise<Result<boolean | null>>{
+    const payload = await jwtService.getPayloadByRefreshToken(refreshToken);
+    if(!payload) return {                                  
+     status: ResultStatus.Unauthorized,
+        errorMessage: "Unauthorized",
+        data: null,
+        extensions: [{ field: "RefreshToken", message: "RefreshToken is not payload" }],
+    };
 
+    const { userId, deviceId } = payload;
+    const result = await sessionsRepository.deleteDeviceWithDevicedId(userId, deviceId);
+    if(!result)return {                                  
+     status: ResultStatus.Unauthorized,
+        errorMessage: "Unauthorized",
+        data: null,
+        extensions: [{ field: "Session", message: "Session is not delete" }],
+    };
+     
     return {                                  
       status: ResultStatus.Success,
-      data: refreshTokenBlackList,
+      data: true , 
       extensions: [],
     };
   },
 
-
-   async checkRefreshTokenBlackList(
-    refreshToken: string,
-  ): Promise<Result<boolean>>{
-     
-    const result = await refreshTokenRepository.findRefreshTokenBlackList(refreshToken);
-
-      if (result){
-      return {
-        status: ResultStatus.Forbidden,
-        errorMessage: 'Refresh token is on the blacklist',
-        extensions: [{field: 'refreshToken',  message: 'Refresh token s on the blacklist'}],
-        data: true,
-      };
-    }
-
-    return {
-      status: ResultStatus.Success,
-      extensions: [],
-      data: false,
-    };
-  },
 };
+
+
+
+//проверка старая когда не было сессии - перед тем как зайти проверяли токен есть ли он в блэк листе - те не валидный
+// async checkRefreshTokenBlackList(
+//     refreshToken: string,
+//   ): Promise<Result<boolean>>{
+     
+//     const result = await refreshTokenRepository.findRefreshTokenBlackList(refreshToken);
+
+//       if (result){
+//       return {
+//         status: ResultStatus.Forbidden,
+//         errorMessage: 'Refresh token is on the blacklist',
+//         extensions: [{field: 'refreshToken',  message: 'Refresh token s on the blacklist'}],
+//         data: true,
+//       };
+//     }
+
+//     return {
+//       status: ResultStatus.Success,
+//       extensions: [],
+//       data: false,
+//     };
+//   },
+
+
+
+//метод когда не было сессии - заносили рефрешь в блэк оист чтобы пользоваьель не мог зайти 
+//  async insertIntoBlackListRefreshToken(
+//     refreshToken: string,
+//   ): Promise<Result<string | null>>{
+     
+//     const refreshTokenBlackList = await refreshTokenRepository.insertIntoBlackList(refreshToken);
+
+//     return {                                  
+//       status: ResultStatus.Success,
+//       data: refreshTokenBlackList,
+//       extensions: [],
+//     };
+//   },

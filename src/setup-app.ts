@@ -2,12 +2,13 @@ import express, { Express, Request, Response } from 'express';
 import { blogsRouter } from './blogs/routers/routers.blog'; 
 import { postsRouter } from './posts/routers/router.post';
 import { testingRouter } from './testing/testing.routers';
-import { AUTH_PATH, BLOGS_PATH, COMMENTS_PATH, POSTS_PATH, TESTING_PATH, USERS_PATH } from './common/paths/path';
+import { AUTH_PATH, BLOGS_PATH, COMMENTS_PATH, POSTS_PATH, SECURITY_DEVICES_PATH, TESTING_PATH, USERS_PATH } from './common/paths/path';
 import { setupSwagger } from './common/swagger/setup-swagger';
 import { usersRouter } from './users/api/users.router';
 import { authRouter } from './auth/api/auth.router';
 import { commentsRouter } from './comments/api/comments.router';
 import cookieParser from 'cookie-parser';
+import { securityDevicesRouter } from './security-devices/api/security-devices.routers';
 
 export const setupApp = (app: Express) => {
 
@@ -25,6 +26,7 @@ app.use(TESTING_PATH, testingRouter);
 app.use(USERS_PATH, usersRouter);
 app.use(AUTH_PATH, authRouter);
 app.use(COMMENTS_PATH, commentsRouter);
+app.use(SECURITY_DEVICES_PATH, securityDevicesRouter)
 
  setupSwagger(app);
  return app;

@@ -7,6 +7,7 @@ import { AUTH_PATH, TESTING_PATH } from "../../../src/common/paths/path";
 import { HttpStatus } from "../../../src/common/types/http.status";
 import { registrationUser } from "../../../test-utils/users/createUser.helper";
 import { usersRepository } from "../../../src/users/infrastructure/user.repository";
+import { nodemailerServise } from "../../../src/auth/adapters/nodemailer.server";
 
 describe("AUTH_FLOW_TEST", () => {
   const app = express();
@@ -31,6 +32,12 @@ describe("AUTH_FLOW_TEST", () => {
     password: "Passw0rd!",
     email: "admin.test@mail.ru",
   };
+
+   nodemailerServise.sendEmail = jest
+    .fn()
+    .mockImplementation((email: string, code: string, subject: string) =>
+      Promise.resolve(true),
+    );
 
   it("registration → confirmation → login → me → refresh → logout → refresh(401)", async () => {
     //РЕГИСТРАЦИЯ

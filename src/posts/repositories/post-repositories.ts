@@ -2,12 +2,56 @@ import { commentsCollection, postCollection } from "../../db/mongo.db";
 import { Post} from "../types/post.type";
 import { PostInputModel } from "../dto/post.dto.view.input";
 import { WithId, ObjectId } from "mongodb";
-import { PaginationAndSorting } from "../../common/types/pagination_and_sorting";
-import { PostSortField } from "../routers/input/post-sort-field";
 import { ICommentDB } from "../../comments/types/comment.db.interface";
 
 
 export const postsRepository = {
+
+async findPostById(id: string): Promise<WithId<Post> | null> {
+return postCollection.findOne({_id: new ObjectId(id)});
+},
+
+async createPost(newPost: Post): Promise<WithId<Post>> {
+const insertResult = await postCollection.insertOne(newPost);
+return {...newPost, _id: insertResult.insertedId}
+},
+
+async createCommentByPostId(newComment: ICommentDB): Promise<string> { //переместить всервис - оттуда репа комментс
+const insertResult = await commentsCollection.insertOne(newComment);
+return insertResult.insertedId.toString();
+},
+
+async updatePost(id: string, dto: PostInputModel): Promise<void> {
+
+    const updateResult = await postCollection.updateMany({_id: new ObjectId(id)},
+    {$set: {    
+    title: dto.title, 
+    shortDescription: dto.shortDescription, 
+    content: dto.content,
+    blogId: dto.blogId,
+}})
+    if(updateResult.matchedCount < 1 ){
+        throw new Error('Post not exist')
+    };
+    return;
+},
+
+async updateManyBlogNameByBlogId(blogId: string, newblogName: string): Promise<void>{
+await postCollection.updateMany(
+    {blogId: blogId},
+    {$set: { blogName: newblogName }}
+);
+return;
+},
+
+async deletePost(id: string): Promise<void> {
+const deleteResult = await postCollection.deleteOne({_id: new ObjectId(id)});
+if(deleteResult.deletedCount < 1){ throw new Error('Post not exist') };
+return;
+},
+
+
+};
 
 // async findMany(queryDto: PaginationAndSorting<PostSortField>): Promise<{items: WithId<Post>[], totalCount: number}> {
 
@@ -75,49 +119,3 @@ export const postsRepository = {
 
 // return  {items, totalCount };
 // },
-
-async findPostById(id: string): Promise<WithId<Post> | null> {
-return postCollection.findOne({_id: new ObjectId(id)});
-},
-
-async createPost(newPost: Post): Promise<WithId<Post>> {
-const insertResult = await postCollection.insertOne(newPost);
-return {...newPost, _id: insertResult.insertedId}
-},
-
-async createCommentByPostId(newComment: ICommentDB): Promise<string> { //переместить всервис - оттуда репа комментс
-const insertResult = await commentsCollection.insertOne(newComment);
-return insertResult.insertedId.toString();
-},
-
-async updatePost(id: string, dto: PostInputModel): Promise<void> {
-
-    const updateResult = await postCollection.updateMany({_id: new ObjectId(id)},
-    {$set: {    
-    title: dto.title, 
-    shortDescription: dto.shortDescription, 
-    content: dto.content,
-    blogId: dto.blogId,
-}})
-    if(updateResult.matchedCount < 1 ){
-        throw new Error('Post not exist')
-    };
-    return;
-},
-
-async updateManyBlogNameByBlogId(blogId: string, newblogName: string): Promise<void>{
-await postCollection.updateMany(
-    {blogId: blogId},
-    {$set: { blogName: newblogName }}
-);
-return;
-},
-
-async deletePost(id: string): Promise<void> {
-const deleteResult = await postCollection.deleteOne({_id: new ObjectId(id)});
-if(deleteResult.deletedCount < 1){ throw new Error('Post not exist') };
-return;
-},
-
-
-};

@@ -1,7 +1,7 @@
 import { refreshTokenCollection } from "../../db/mongo.db";
 
 
-export const refreshTokenRepository = {
+export const refreshTokenRepository = { //УДАЛИТЬ ПРИ СЕССИЯХ БОЛЬШЕ НЕ ПРИМИНЯЕМ 
 
   async insertIntoBlackList(token: string): Promise<string>{
 

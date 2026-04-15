@@ -20,6 +20,8 @@ const bootstrap = async () => {
     process.exit(1); // останавливаем приложение, если нет подключения к БД
   }
 
+  app.set('trust proxy', true) //для того чтобы изьять req.ip
+
   app.listen(PORT, () => {
     console.log(`🚀 App listening on port ${PORT}`);
   });

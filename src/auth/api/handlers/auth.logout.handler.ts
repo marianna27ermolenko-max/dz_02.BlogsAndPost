@@ -8,12 +8,10 @@ export async function logoutHandler(req: Request, res: Response){
 try {
 
     const refreshToken = req.cookies.refreshToken;
-
-    console.log('Logout token:', refreshToken);
     
-    const blacklistResult = await authService.insertIntoBlackListRefreshToken(refreshToken); 
+    const existSession = await authService.deleteSession(refreshToken); 
      
-    if(blacklistResult.status === ResultStatus.Success) 
+    if(existSession.status === ResultStatus.Success) 
         return res.sendStatus(HttpStatus.NO_CONTENT)
 
     return res.sendStatus(HttpStatus.UNAUTHORIZED);

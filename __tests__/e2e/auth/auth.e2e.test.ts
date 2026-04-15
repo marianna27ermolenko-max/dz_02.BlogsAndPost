@@ -20,6 +20,10 @@ import {
   ADMIN_PASSWORD,
   ADMIN_USERNAME,
 } from "../../../src/auth/guard/super-admin.guard-middleware";
+import { nodemailerServise } from "../../../src/auth/adapters/nodemailer.server";
+import { registerAndConfirmUser } from "../../../test-utils/sessions/registration.helper";
+import { loginAndGetTokens } from "../../../test-utils/sessions/login.helper";
+import { sessionsRepository } from "../../../src/security-devices/infrastructure/security-devices.repository";
 
 
 describe("AUTH_TEST", () => {
@@ -51,6 +55,12 @@ describe("AUTH_TEST", () => {
     password: "Passw0rd!",
     email: "admin.test@mail.ru",
   };
+
+  nodemailerServise.sendEmail = jest
+      .fn()
+      .mockImplementation((email: string, code: string, subject: string) =>
+        Promise.resolve(true),
+      );
 
   describe("POST /login", () => {
     describe("validation", () => {
@@ -172,6 +182,37 @@ describe("AUTH_TEST", () => {
         expect(res.body.errorsMessages?.[0].message).toBe("Email not confirm");
       });
     });
+    
+    describe("status 429", () => {
+      it("should not login user if custom rate limit more than 5 times: STATUS 429", async () => {
+          await registerAndConfirmUser(app, validDtoCreateUser);     
+
+          for(let i = 0; i < 5; i++){
+
+          await request(app)
+          .post(`${AUTH_PATH}/login`)
+          .set("X-Forwarded-For", '1.1.1.1')
+          .set("User-Agent", 'device')
+          .send({
+            loginOrEmail: validDtoCreateUser.login,
+            password: validDtoCreateUser.password,
+          })
+          .expect(HttpStatus.OK);
+
+          }
+
+          await request(app)
+          .post(`${AUTH_PATH}/login`)
+          .set("X-Forwarded-For", '1.1.1.1')
+          .set("User-Agent", 'device')
+          .send({
+            loginOrEmail: validDtoCreateUser.login,
+            password: validDtoCreateUser.password,
+          })
+          .expect(HttpStatus.TOO_MANY_REQUESTS);
+
+      })
+    })
   });
 
   describe("POST /registration", () => {
@@ -381,32 +422,22 @@ describe("AUTH_TEST", () => {
         .expect(HttpStatus.UNAUTHORIZED);
     });
 
-    it("should not update tokens if refreshToken be in thi Black list", async () => {
-      const { refreshToken } = await fullCreateUserWithToken(
-        app,
-        validDtoCreateUser,
-      );
+    it("should not update tokens if lastActiveDate session doesn't match with iat refresh token", async () => { //переписать тест - поменялись условия 
+      await registerAndConfirmUser(app, validDtoCreateUser);
+      const device1 = await loginAndGetTokens( app, validDtoCreateUser, "device-1", '1.1.1.1');
+      const { refreshToken } = device1;
 
-      const fistResult = await request(app)
+      await sessionsRepository.updateLastActiveDate(  device1.deviceId, "2000-01-01T00:00:00.000Z");
+      
+      await request(app)
         .post(`${AUTH_PATH}/refresh-token`)
         .set("Cookie", [`refreshToken=${refreshToken}`])
-        .expect(HttpStatus.OK);
+        .expect(HttpStatus.UNAUTHORIZED);  
 
-      expect(fistResult.body).toHaveProperty("accessToken");
-
-      const secondResult = await request(app)
-        .post(`${AUTH_PATH}/refresh-token`)
-        .set("Cookie", [`refreshToken=${refreshToken}`])
-        .expect(HttpStatus.UNAUTHORIZED);
-
-      expect(secondResult.body).toHaveProperty("errorMessages");
     });
 
     it("should not update tokens if user not exist", async () => {
-      const { refreshToken } = await fullCreateUserWithToken(
-        app,
-        validDtoCreateUser,
-      );
+      const { refreshToken } = await fullCreateUserWithToken( app, validDtoCreateUser, );
       const user = await usersRepository.findByEmail(validDtoCreateUser.email);
 
       await request(app)
@@ -438,10 +469,7 @@ describe("AUTH_TEST", () => {
   describe("POST /logout", () => {
     describe("STATUS 204", () => {
       it("should will be revoked with correct refresh token", async () => {
-        const { refreshToken } = await fullCreateUserWithToken(
-          app,
-          validDtoCreateUser,
-        );
+        const { refreshToken } = await fullCreateUserWithToken( app, validDtoCreateUser,);
 
         await request(app)
           .post(`${AUTH_PATH}/logout`)
